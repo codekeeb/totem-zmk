@@ -1,0 +1,16 @@
+# Generates the GitHub Actions build matrix.
+#
+# The TOTEM shield targets the Seeed XIAO BLE: its dtsi drives the matrix
+# through the &xiao_d connector, so this is the board the PCB expects.
+---
+include:
+  # Left half is the split central, and the only one that speaks the
+  # Studio RPC, so it gets the USB-UART snippet.
+  - board: seeeduino_xiao_ble
+    shield: totem_left
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y
+  - board: seeeduino_xiao_ble
+    shield: totem_right
+  - board: seeeduino_xiao_ble
+    shield: settings_reset

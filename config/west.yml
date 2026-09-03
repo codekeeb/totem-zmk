@@ -1,0 +1,19 @@
+manifest:
+  remotes:
+    - name: zmkfirmware
+      url-base: https://github.com/zmkfirmware
+    - name: bildermankawasaki
+      url-base: https://github.com/bildermankawasaki
+  projects:
+    - name: zmk
+      remote: zmkfirmware
+      # Pinned to v0.3: ZMK main moved to Zephyr 4.1, which carries
+      # breaking changes the TOTEM module has not been updated for.
+      revision: v0.3
+      import: app/west.yml
+    # Shield definition for the TOTEM (matrix, layout, physical layout).
+    - name: zmk-keyboard-totem
+      remote: bildermankawasaki
+      revision: main
+  self:
+    path: config
