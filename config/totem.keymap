@@ -1,18 +1,23 @@
 /*
- * TOTEM - CODE/KEEB base firmware.
+ * TOTEM - CODE/KEEB firmware.
  *
- * 38 keys: 3x5 column-staggered per half, plus an outer key on each side
- * of the home row and 3 thumbs per half.
+ * Based on the keymap that ships with the TOTEM shield module
+ * (BildermanKawasaki/zmk-keyboard-TOTEM), which in turn follows
+ * GEIGEIGEIST's original layout for this board.
  *
- * Layers: BASE (QWERTY), LOWER (numbers + navigation), RAISE (symbols),
- * ADJUST (bluetooth, reset, output) reached by holding LOWER and RAISE
- * together.
+ * Physical layout, 38 keys. The outer keys on the top two rows ARE the
+ * rotated pinky column -- they are not extra keys -- and the bottom row
+ * carries one additional outer key on each side:
  *
- * ZMK Studio: hold LOWER and press Z to unlock the keymap for editing.
- * The board boots locked (CONFIG_ZMK_STUDIO_LOCKING in totem_left.conf),
- * so a Studio client can connect and read the layout but cannot change
- * anything until that key is pressed. This stops a stray connection --
- * or someone else's browser -- from rewriting the keymap.
+ *   row 0 (pos  0-9 ) : 5 + 5   top row, pinky included
+ *   row 1 (pos 10-19) : 5 + 5   home row, pinky included
+ *   row 2 (pos 20-31) : 6 + 6   bottom row + one outer key per side
+ *   row 3 (pos 32-37) : 3 + 3   thumbs
+ *
+ * ZMK Studio: hold NAV (left inner thumb) and press Z to unlock the
+ * keymap for editing. The board boots locked, so a client can connect
+ * and read the layout but cannot change anything until that key is
+ * pressed. It re-locks on disconnect and on reboot.
  */
 
 #include <behaviors.dtsi>
@@ -21,99 +26,98 @@
 #include <dt-bindings/zmk/outputs.h>
 
 #define BASE 0
-#define LOWER 1
-#define RAISE 2
-#define ADJUST 3
+#define NAV  1
+#define SYM  2
+#define ADJ  3
+
+&mt {
+    quick-tap-ms = <100>;
+    require-prior-idle-ms = <100>;
+    flavor = "tap-preferred";
+    tapping-term-ms = <170>;
+};
 
 / {
-    conditional_layers {
-        compatible = "zmk,conditional-layers";
-        // Holding both thumb layer keys reaches ADJUST.
-        adjust {
-            if-layers = <LOWER RAISE>;
-            then-layer = <ADJUST>;
-        };
-    };
-
     keymap {
         compatible = "zmk,keymap";
 
         base_layer {
             display-name = "BASE";
-// ╭────────┬────────┬────────┬────────┬────────╮   ╭────────┬────────┬────────┬────────┬────────╮
-// │   Q    │   W    │   E    │   R    │   T    │   │   Y    │   U    │   I    │   O    │   P    │
-// ├────────┼────────┼────────┼────────┼────────┤   ├────────┼────────┼────────┼────────┼────────┤
-// │   A    │   S    │   D    │   F    │   G    │   │   H    │   J    │   K    │   L    │   ;    │
-// ├────────┼────────┼────────┼────────┼────────┤   ├────────┼────────┼────────┼────────┼────────┤
-// │   Z    │   X    │   C    │   V    │   B    │   │   N    │   M    │   ,    │   .    │   /    │
-// ╰────────┴────────┴───┬────┴───┬────┴───┬────╯   ╰───┬────┴───┬────┴───┬────┴────────┴────────╯
-//                       │  TAB   │ LOWER  │ SPACE │ ENTER │ RAISE  │ BSPC │
-//                       ╰────────┴────────┴───────┴───────┴────────┴──────╯
+// ╭─────┬─────┬─────┬─────┬─────╮   ╭─────┬─────┬─────┬─────┬─────╮
+// │  Q  │  W  │  E  │  R  │  T  │   │  Y  │  U  │  I  │  O  │  P  │
+// ├─────┼─────┼─────┼─────┼─────┤   ├─────┼─────┼─────┼─────┼─────┤
+// │  A  │  S  │  D  │  F  │  G  │   │  H  │  J  │  K  │  L  │  ;  │
+// ├─────┼─────┼─────┼─────┼─────┤   ├─────┼─────┼─────┼─────┼─────┤
+// │  Z  │  X  │  C  │  V  │  B  │   │  N  │  M  │  ,  │  .  │  /  │
+// ╰─────┴─────┴──┬──┴──┬──┴──┬──╯   ╰──┬──┴──┬──┴──┬──┴─────┴─────╯
+//                │ DEL │ TAB │ SPC │ RET │ ESC │BSPC │
+//                ╰─────┴─────┴─────┴─────┴─────┴─────╯
+// Home row mods: A/S/D/F and J/K/L/; are GUI/ALT/CTRL/SHIFT on hold.
+// TAB holds NAV, ESC holds SYM. Outer bottom keys are ESC and '.
             bindings = <
-             &kp Q      &kp W      &kp E      &kp R      &kp T         &kp Y      &kp U      &kp I      &kp O      &kp P
-             &kp A      &kp S      &kp D      &kp F      &kp G         &kp H      &kp J      &kp K      &kp L      &kp SEMI
-  &kp ESC    &kp Z      &kp X      &kp C      &kp V      &kp B         &kp N      &kp M      &kp COMMA  &kp DOT    &kp FSLH   &kp SQT
-                                   &kp TAB    &mo LOWER  &kp SPACE     &kp RET    &mo RAISE  &kp BSPC
+              &kp Q        &kp W        &kp E        &kp R        &kp T             &kp Y      &kp U        &kp I        &kp O        &kp P
+              &mt LGUI A   &mt LALT S   &mt LCTRL D  &mt LSHFT F  &kp G             &kp H      &mt RSHFT J  &mt RCTRL K  &mt RALT L   &mt RGUI SEMI
+  &kp ESC     &kp Z        &kp X        &kp C        &kp V        &kp B             &kp N      &kp M        &kp COMMA    &kp DOT      &kp FSLH      &kp SQT
+                                        &kp DEL      &lt NAV TAB  &kp SPACE         &kp RET    &lt SYM ESC  &kp BSPC
             >;
         };
 
-        lower_layer {
-            display-name = "LOWER";
-// ╭────────┬────────┬────────┬────────┬────────╮   ╭────────┬────────┬────────┬────────┬────────╮
-// │   1    │   2    │   3    │   4    │   5    │   │   6    │   7    │   8    │   9    │   0    │
-// ├────────┼────────┼────────┼────────┼────────┤   ├────────┼────────┼────────┼────────┼────────┤
-// │ SHIFT  │ CTRL   │  ALT   │  GUI   │  HOME  │   │  LEFT  │  DOWN  │   UP   │ RIGHT  │  END   │
-// ├────────┼────────┼────────┼────────┼────────┤   ├────────┼────────┼────────┼────────┼────────┤
-// │ STUDIO │  CUT   │  COPY  │ PASTE  │ PG UP  │   │ PG DN  │  MUTE  │ VOL-   │ VOL+   │  PLAY  │
-// ╰────────┴────────┴───┬────┴───┬────┴───┬────╯   ╰───┬────┴───┬────┴───┬────┴────────┴────────╯
-//                       │        │ (held) │       │       │        │  DEL │
-//                       ╰────────┴────────┴───────┴───────┴────────┴──────╯
-//
-// STUDIO = &studio_unlock: unlocks the keymap for ZMK Studio editing.
+        nav_layer {
+            display-name = "NAV";
+// ╭─────┬─────┬─────┬─────┬─────╮   ╭─────┬─────┬─────┬─────┬─────╮
+// │ ESC │     │ UP  │  =  │  {  │   │  }  │  7  │  8  │  9  │  +  │
+// ├─────┼─────┼─────┼─────┼─────┤   ├─────┼─────┼─────┼─────┼─────┤
+// │SHIFT│LEFT │DOWN │RIGHT│  [  │   │  ]  │  4  │  5  │  6  │  -  │
+// ├─────┼─────┼─────┼─────┼─────┤   ├─────┼─────┼─────┼─────┼─────┤
+// │STUDI│PG UP│CAPS │PG DN│  (  │   │  )  │  1  │  2  │  3  │  *  │
+// ╰─────┴─────┴──┬──┴──┬──┴──┬──╯   ╰──┬──┴──┬──┴──┬──┴─────┴─────╯
+//                │     │(held)│    │ ADJ │  0  │ DEL │
+//                ╰─────┴─────┴─────┴─────┴─────┴─────╯
+// STUDI = &studio_unlock, on the Z key: hold NAV and press Z.
             bindings = <
-             &kp N1        &kp N2     &kp N3     &kp N4     &kp N5        &kp N6     &kp N7      &kp N8       &kp N9       &kp N0
-             &kp LSHFT     &kp LCTRL  &kp LALT   &kp LGUI   &kp HOME      &kp LEFT   &kp DOWN    &kp UP       &kp RIGHT    &kp END
-  &trans     &studio_unlock &kp LC(X) &kp LC(C)  &kp LC(V)  &kp PG_UP     &kp PG_DN  &kp C_MUTE  &kp C_VOL_DN &kp C_VOL_UP &kp C_PP  &trans
-                                      &trans     &trans     &trans        &trans     &trans      &kp DEL
+              &kp ESC        &kp DEL     &kp UP       &kp EQUAL    &kp LBRC          &kp RBRC   &kp KP_N7   &kp KP_N8   &kp KP_N9   &kp KP_PLUS
+              &kp LSHFT      &kp LEFT    &kp DOWN     &kp RIGHT    &kp LBKT          &kp RBKT   &kp KP_N4   &kp KP_N5   &kp KP_N6   &kp KP_MINUS
+  &trans      &studio_unlock &kp PG_UP   &kp CAPS     &kp PG_DN    &kp LPAR          &kp RPAR   &kp KP_N1   &kp KP_N2   &kp KP_N3   &kp KP_MULTIPLY &trans
+                                         &trans       &trans       &trans            &mo ADJ    &kp KP_N0   &kp DEL
             >;
         };
 
-        raise_layer {
-            display-name = "RAISE";
-// ╭────────┬────────┬────────┬────────┬────────╮   ╭────────┬────────┬────────┬────────┬────────╮
-// │   !    │   @    │   #    │   $    │   %    │   │   ^    │   &    │   *    │   (    │   )    │
-// ├────────┼────────┼────────┼────────┼────────┤   ├────────┼────────┼────────┼────────┼────────┤
-// │   -    │   =    │   [    │   ]    │   \    │   │   `    │   '    │   ,    │   .    │   /    │
-// ├────────┼────────┼────────┼────────┼────────┤   ├────────┼────────┼────────┼────────┼────────┤
-// │   _    │   +    │   {    │   }    │   |    │   │   ~    │   "    │   <    │   >    │   ?    │
-// ╰────────┴────────┴───┬────┴───┬────┴───┬────╯   ╰───┬────┴───┬────┴───┬────┴────────┴────────╯
-//                       │        │        │       │       │ (held) │      │
-//                       ╰────────┴────────┴───────┴───────┴────────┴──────╯
+        sym_layer {
+            display-name = "SYM";
+// ╭─────┬─────┬─────┬─────┬─────╮   ╭─────┬─────┬─────┬─────┬─────╮
+// │  !  │  @  │  #  │  $  │  %  │   │  ^  │  &  │  *  │  '  │  "  │
+// ├─────┼─────┼─────┼─────┼─────┤   ├─────┼─────┼─────┼─────┼─────┤
+// │  _  │  -  │  =  │  +  │  \  │   │MUTE │  (  │  )  │  [  │  ]  │
+// ├─────┼─────┼─────┼─────┼─────┤   ├─────┼─────┼─────┼─────┼─────┤
+// │  `  │  ~  │  |  │  <  │  >  │   │VOL- │VOL+ │PREV │NEXT │  ?  │
+// ╰─────┴─────┴──┬──┴──┬──┴──┬──╯   ╰──┬──┴──┬──┴──┬──┴─────┴─────╯
+//                │     │ ADJ │     │     │(held)│    │
+//                ╰─────┴─────┴─────┴─────┴─────┴─────╯
             bindings = <
-             &kp EXCL   &kp AT     &kp HASH   &kp DLLR   &kp PRCNT     &kp CARET  &kp AMPS   &kp ASTRK  &kp LPAR   &kp RPAR
-             &kp MINUS  &kp EQUAL  &kp LBKT   &kp RBKT   &kp BSLH      &kp GRAVE  &kp SQT    &kp COMMA  &kp DOT    &kp FSLH
-  &trans     &kp UNDER  &kp PLUS   &kp LBRC   &kp RBRC   &kp PIPE      &kp TILDE  &kp DQT    &kp LT     &kp GT     &kp QMARK &trans
-                                   &trans     &trans     &trans        &trans     &trans     &trans
+              &kp EXCL    &kp AT       &kp HASH    &kp DLLR    &kp PRCNT          &kp CARET     &kp AMPS      &kp ASTRK   &kp SQT     &kp DQT
+              &kp UNDER   &kp MINUS    &kp EQUAL   &kp PLUS    &kp BSLH           &kp C_MUTE    &kp LPAR      &kp RPAR    &kp LBKT    &kp RBKT
+  &trans      &kp GRAVE   &kp TILDE    &kp PIPE    &kp LT      &kp GT             &kp C_VOL_DN  &kp C_VOL_UP  &kp C_PREV  &kp C_NEXT  &kp QMARK  &trans
+                                       &trans      &mo ADJ     &trans             &trans        &trans        &kp C_PP
             >;
         };
 
         adjust_layer {
             display-name = "ADJ";
-// Reached by holding LOWER and RAISE together.
-// ╭────────┬────────┬────────┬────────┬────────╮   ╭────────┬────────┬────────┬────────┬────────╮
-// │  BT 1  │  BT 2  │  BT 3  │  BT 4  │  BT 5  │   │   F1   │   F2   │   F3   │   F4   │   F5   │
-// ├────────┼────────┼────────┼────────┼────────┤   ├────────┼────────┼────────┼────────┼────────┤
-// │BT CLEAR│        │        │        │ USB/BT │   │   F6   │   F7   │   F8   │   F9   │  F10   │
-// ├────────┼────────┼────────┼────────┼────────┤   ├────────┼────────┼────────┼────────┼────────┤
-// │ BOOTLD │        │        │        │ RESET  │   │        │        │        │  F11   │  F12   │
-// ╰────────┴────────┴───┬────┴───┬────┴───┬────╯   ╰───┬────┴───┬────┴───┬────┴────────┴────────╯
-//                       │        │ (held) │       │       │ (held) │      │
-//                       ╰────────┴────────┴───────┴───────┴────────┴──────╯
+// Reached from NAV or SYM (the inner thumb of the other half).
+// ╭─────┬─────┬─────┬─────┬─────╮   ╭─────┬─────┬─────┬─────┬─────╮
+// │RESET│BTCLR│OUTTG│     │     │   │     │ F7  │ F8  │ F9  │ F12 │
+// ├─────┼─────┼─────┼─────┼─────┤   ├─────┼─────┼─────┼─────┼─────┤
+// │BOOTL│BT 1 │BT 2 │BT 3 │BT 4 │   │     │ F4  │ F5  │ F6  │ F11 │
+// ├─────┼─────┼─────┼─────┼─────┤   ├─────┼─────┼─────┼─────┼─────┤
+// │     │BTPRV│BTNXT│     │     │   │     │ F1  │ F2  │ F3  │ F10 │
+// ╰─────┴─────┴──┬──┴──┬──┴──┬──╯   ╰──┬──┴──┬──┴──┬──┴─────┴─────╯
+//                │     │     │     │     │     │     │
+//                ╰─────┴─────┴─────┴─────┴─────┴─────╯
             bindings = <
-             &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4    &kp F1     &kp F2     &kp F3     &kp F4     &kp F5
-             &bt BT_CLR   &none        &none        &none        &out OUT_TOG    &kp F6     &kp F7     &kp F8     &kp F9     &kp F10
-  &trans     &bootloader  &none        &none        &none        &sys_reset      &none      &none      &none      &kp F11    &kp F12  &trans
-                                       &trans       &trans       &trans          &trans     &trans     &trans
+              &sys_reset  &bt BT_CLR   &out OUT_TOG &trans        &trans            &trans     &kp F7   &kp F8   &kp F9   &kp F12
+              &bootloader &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2  &bt BT_SEL 3      &trans     &kp F4   &kp F5   &kp F6   &kp F11
+  &trans      &trans      &bt BT_PRV   &bt BT_NXT   &trans        &trans            &trans     &kp F1   &kp F2   &kp F3   &kp F10   &trans
+                                       &trans       &trans        &trans            &trans     &trans   &trans
             >;
         };
     };
