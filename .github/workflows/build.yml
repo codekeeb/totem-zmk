@@ -6,3 +6,35 @@ on:
 jobs:
   build:
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3
+
+  release:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download firmware artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware
+          path: firmware
+
+      # Un unico zip con los .uf2 dentro (las dos mitades y settings_reset).
+      - name: Package firmware into a single zip
+        run: |
+          cd firmware
+          for f in *.uf2; do
+            n="${f// /.}"
+            [ "$f" = "$n" ] || mv "$f" "$n"
+          done
+          zip -j "../TOTEM-${GITHUB_REF_NAME}.zip" *.uf2
+          cd ..
+          unzip -l "TOTEM-${GITHUB_REF_NAME}.zip"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TOTEM-${{ github.ref_name }}.zip
+          generate_release_notes: true
